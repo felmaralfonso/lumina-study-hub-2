@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { TimerIcon, PlayIcon, PauseIcon, RotateCcwIcon, XIcon, PlusIcon, MinusIcon } from 'lucide-react';
+import { cn } from '../lib/utils';
 
-export default function GlobalTimer() {
+export default function GlobalTimer({ isEmbedded }: { isEmbedded?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -74,7 +75,9 @@ export default function GlobalTimer() {
   };
 
   return (
-    <div className="fixed right-0 bottom-8 z-[100] flex flex-row-reverse" ref={containerRef}>
+    <div className={cn(
+      isEmbedded ? "relative flex flex-row-reverse" : "fixed right-0 bottom-8 z-[100] flex flex-row-reverse"
+    )} ref={containerRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className="w-12 h-12 bg-white border border-[#E5E5E1] border-r-0 shadow-lg flex items-center justify-center rounded-l-xl hover:bg-[#F9F9F7] transition-all group overflow-hidden relative"

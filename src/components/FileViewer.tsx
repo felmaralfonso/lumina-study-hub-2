@@ -34,6 +34,7 @@ interface FileViewerProps {
   onSaveFile: (fileId: string, updates: Partial<Pick<HubFile, 'annotations' | 'content'>>) => void;
   externalActiveAudio: HubFile | null;
   onSetActiveAudio: (file: HubFile | null) => void;
+  blackboardWidth?: number;
 }
 
 export default function FileViewer({ 
@@ -41,10 +42,11 @@ export default function FileViewer({
   allFiles, 
   onFileSelect, 
   onClose, 
-  onSetActiveAudio
+  onSetActiveAudio,
+  blackboardWidth = 0
 }: FileViewerProps) {
   const [switcherSearch, setSwitcherSearch] = useState('');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   // Track doc edits — reset immediately on file change to avoid stale decoding
   const [editedDocContent, setEditedDocContent] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -136,17 +138,31 @@ export default function FileViewer({
     [allFiles, file.parentId]
   );
 
+  const [isHovered, setIsHovered] = useState(false);
+  const showFullSidebar = isSidebarOpen || isHovered;
+
   return (
-    <div className="fixed inset-0 z-50 bg-[#F9F9F7] flex font-sans overflow-hidden">
+    <div 
+      className="fixed inset-y-0 left-0 z-50 bg-[#F9F9F7] flex font-sans overflow-hidden transition-all duration-300 ease-in-out"
+      style={{ right: blackboardWidth }}
+    >
       
-      {/* Left Navigation Sidebar */}
+      {/* Left Navigation Sidebar (Floating Overlay) */}
       <aside 
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         className={cn(
-          "bg-white border-r border-[#E5E5E1] flex flex-col z-20 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300 ease-in-out",
-          isSidebarOpen ? "w-72" : "w-14"
+          "absolute left-0 top-0 bottom-0 z-[160] flex flex-col transition-all duration-500 ease-in-out",
+          showFullSidebar 
+            ? "w-80 translate-x-0" 
+            : "w-16 translate-x-0"
         )}
       >
-        {isSidebarOpen ? (
+        <div className={cn(
+          "h-full flex flex-col transition-all duration-500",
+          showFullSidebar ? "bg-white border-r border-[#E5E5E1] shadow-2xl" : "bg-transparent"
+        )}>
+        {showFullSidebar ? (
           <>
             <div className="p-4 border-b border-[#E5E5E1] flex items-center justify-between bg-white shrink-0">
               <button 
@@ -165,6 +181,8 @@ export default function FileViewer({
                 <ChevronLeftIcon size={18} />
               </button>
             </div>
+            {/* ... rest of full sidebar content ... */}
+
 
             <div className="p-6 border-b border-[#E5E5E1] bg-[#F9F9F7] shrink-0">
               <h2 className="text-sm font-bold tracking-tight text-text-primary mb-1 line-clamp-2" title={file.name}>
@@ -237,24 +255,9 @@ export default function FileViewer({
             )}
           </>
         ) : (
-          <div className="flex flex-col items-center py-4 gap-6 h-full bg-white shrink-0">
-            <button 
-              onClick={onClose} 
-              className="p-2 text-[#9A9A96] hover:text-[#E11D48] hover:bg-[#F9F9F7] rounded-lg transition-colors"
-              title="Close Document"
-            >
-              <XIcon size={20} />
-            </button>
-            <div className="w-8 h-[1px] bg-[#E5E5E1]" />
-            <button 
-              onClick={() => setIsSidebarOpen(true)}
-              className="p-2 text-[#9A9A96] hover:text-text-primary hover:bg-[#F9F9F7] rounded-lg transition-colors"
-              title="Open Library Sidebar"
-            >
-              <ChevronRightIcon size={20} />
-            </button>
-          </div>
+          <div className="w-full h-full bg-transparent cursor-w-resize" />
         )}
+        </div>
       </aside>
 
       {/* Main Content Area */}

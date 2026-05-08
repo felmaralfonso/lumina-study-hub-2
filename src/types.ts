@@ -2,7 +2,7 @@ export type FileType = 'pdf' | 'audio' | 'doc' | 'image';
 
 export interface Annotation {
   id: string;
-  type: 'pen' | 'rect' | 'circle';
+  type: 'pen' | 'rect' | 'circle' | 'text';
   points?: number[];
   x?: number;
   y?: number;
@@ -10,6 +10,9 @@ export interface Annotation {
   height?: number;
   color: string;
   strokeWidth: number;
+  content?: string;
+  fontSize?: number;
+  fontFamily?: string;
 }
 
 export interface HubFile {

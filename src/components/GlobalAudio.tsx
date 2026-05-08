@@ -9,9 +9,10 @@ interface GlobalAudioProps {
   onClearAudio: () => void;
   allFiles: HubFile[];
   onSelectAudio: (file: HubFile) => void;
+  isEmbedded?: boolean;
 }
 
-export default function GlobalAudio({ activeAudio, onClearAudio, allFiles, onSelectAudio }: GlobalAudioProps) {
+export default function GlobalAudio({ activeAudio, onClearAudio, allFiles, onSelectAudio, isEmbedded }: GlobalAudioProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
@@ -55,7 +56,9 @@ export default function GlobalAudio({ activeAudio, onClearAudio, allFiles, onSel
   };
 
   return (
-    <div className="fixed right-0 top-24 z-[100] flex" ref={containerRef}>
+    <div className={cn(
+      isEmbedded ? "relative flex" : "fixed right-0 top-24 z-[100] flex"
+    )} ref={containerRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className={cn(

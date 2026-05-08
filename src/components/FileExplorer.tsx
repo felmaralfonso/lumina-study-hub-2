@@ -234,15 +234,7 @@ export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
             </button>
           )}
 
-          {!isAtRoot && (
-            <button 
-              onClick={handleCreateAssignmentFolder}
-              className="flex items-center gap-2 px-5 py-2 text-[10px] font-bold uppercase tracking-widest border border-[#E5E5E1] hover:bg-white rounded transition-colors"
-            >
-              <FolderIcon size={14} />
-              Add Assignments
-            </button>
-          )}
+
 
           <button 
             onClick={handleCreateDoc}
