@@ -109,13 +109,47 @@ export default function GlobalTimer() {
 
             <div className="flex-1 flex flex-col items-center justify-center">
               <div className="relative mb-8">
-                <motion.div 
-                   className="text-5xl font-mono font-bold tracking-tighter text-[#1A1A1A]"
-                   animate={isRunning ? { opacity: [1, 0.7, 1] } : {}}
-                   transition={{ duration: 1, repeat: Infinity }}
-                >
-                  {formatTime(timeLeft)}
-                </motion.div>
+                {isRunning ? (
+                  <motion.div 
+                     className="text-5xl font-mono font-bold tracking-tighter text-[#1A1A1A]"
+                     animate={{ opacity: [1, 0.7, 1] }}
+                     transition={{ duration: 1, repeat: Infinity }}
+                  >
+                    {formatTime(timeLeft)}
+                  </motion.div>
+                ) : (
+                  <div className="flex items-center text-5xl font-mono font-bold tracking-tighter text-[#1A1A1A]">
+                    <input 
+                      type="number" 
+                      value={Math.floor(initialTime / 60)} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const mins = val === '' ? 0 : parseInt(val);
+                        const secs = initialTime % 60;
+                        setInitialTime(mins * 60 + secs);
+                        setTimeLeft(mins * 60 + secs);
+                      }}
+                      className="w-20 text-right bg-transparent outline-none hover:bg-black/5 rounded-lg transition-colors appearance-none"
+                      min="0"
+                    />
+                    <span>:</span>
+                    <input 
+                      type="number" 
+                      value={String(initialTime % 60).padStart(2, '0')} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        let secs = val === '' ? 0 : parseInt(val);
+                        if (secs > 59) secs = 59;
+                        const mins = Math.floor(initialTime / 60);
+                        setInitialTime(mins * 60 + secs);
+                        setTimeLeft(mins * 60 + secs);
+                      }}
+                      className="w-20 bg-transparent outline-none hover:bg-black/5 rounded-lg transition-colors appearance-none"
+                      min="0"
+                      max="59"
+                    />
+                  </div>
+                )}
                 
                 {!isRunning && (
                   <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 w-max">

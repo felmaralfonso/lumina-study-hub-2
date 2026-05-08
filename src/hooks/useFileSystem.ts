@@ -35,14 +35,16 @@ export function useFileSystem() {
     }
   }, [state, isLoaded]);
 
-  const addFolder = (name: string, parentId: string | null) => {
+  const addFolder = (name: string, parentId: string | null, customId?: string) => {
+    const id = customId || crypto.randomUUID();
     const newFolder: Folder = {
-      id: crypto.randomUUID(),
+      id,
       name,
       parentId,
       createdAt: Date.now(),
     };
     setState(prev => ({ ...prev, folders: [...prev.folders, newFolder] }));
+    return id;
   };
 
   const addFile = (file: Omit<HubFile, 'id' | 'createdAt' | 'annotations'> & { size?: number }) => {

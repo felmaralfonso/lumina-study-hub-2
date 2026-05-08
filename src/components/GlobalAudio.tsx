@@ -183,12 +183,6 @@ export default function GlobalAudio({ activeAudio, onClearAudio, allFiles, onSel
                     </button>
                   </div>
 
-                  <audio 
-                    ref={audioRef} 
-                    src={activeAudio.content} 
-                    onEnded={() => setIsPlaying(false)}
-                    hidden 
-                  />
                 </>
               )}
             </div>
@@ -200,6 +194,15 @@ export default function GlobalAudio({ activeAudio, onClearAudio, allFiles, onSel
           </motion.div>
         )}
       </AnimatePresence>
+
+      {activeAudio && (
+        <audio 
+          ref={audioRef} 
+          src={activeAudio.content} 
+          onEnded={() => setIsPlaying(false)}
+          hidden 
+        />
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar, { TabType } from './components/Sidebar';
 import FileExplorer from './components/FileExplorer';
 import GameGenerator from './components/GameGenerator';

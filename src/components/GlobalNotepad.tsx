@@ -61,7 +61,12 @@ export default function GlobalNotepad() {
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#9A9A96]">Daily Journal</h3>
               <div className="flex items-center gap-1">
                 <button onClick={() => changeDate(-1)} className="p-1 hover:bg-[#F0F0EE] rounded transition-colors"><ChevronLeftIcon size={12}/></button>
-                <span className="text-[10px] font-mono font-bold bg-[#F0F0EE] px-2 py-0.5 rounded">{selectedDate}</span>
+                <input 
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="text-[10px] font-mono font-bold bg-[#F0F0EE] px-2 py-0.5 rounded outline-none cursor-pointer text-[#4A4A44] hover:bg-[#E5E5E1] transition-colors"
+                />
                 <button onClick={() => changeDate(1)} className="p-1 hover:bg-[#F0F0EE] rounded transition-colors"><ChevronRightIcon size={12}/></button>
               </div>
             </div>

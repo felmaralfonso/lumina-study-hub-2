@@ -17,8 +17,8 @@ export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
   const [showNotes, setShowNotes] = useState(false);
 
   const currentFolder = state.folders.find(f => f.id === currentFolderId);
-  const currentFolders = state.folders.filter(f => f.parentId === currentFolderId);
-  const currentFiles = state.files.filter(f => f.parentId === currentFolderId);
+  const currentFolders = state.folders.filter(f => (f.parentId || null) === (currentFolderId || null));
+  const currentFiles = state.files.filter(f => (f.parentId || null) === (currentFolderId || null));
 
   const isAtRoot = currentFolderId === null;
 
@@ -34,7 +34,15 @@ export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
 
   const [isDragging, setIsDragging] = useState(false);
 
-  const processFile = async (file: File) => {
+  const processFile = async (file: File, parentId: string | null = currentFolderId) => {
+    const allowedExtensions = ['.pdf', '.mp3', '.wav', '.txt', '.docx', '.png', '.jpg', '.jpeg', '.pptx'];
+    const isAllowed = allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext)) || 
+                      file.type.includes('pdf') || 
+                      file.type.includes('audio') || 
+                      file.type.includes('image');
+
+    if (!isAllowed) return;
+
     if (file.name.endsWith('.docx')) {
       const arrayBuffer = await file.arrayBuffer();
       const mammoth = await import('mammoth');
@@ -45,7 +53,7 @@ export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
         type: 'doc',
         content: btoa(unescape(encodeURIComponent(result.value))),
         mimeType: 'text/html',
-        parentId: currentFolderId,
+        parentId: parentId,
         size: file.size
       });
       return;
@@ -64,17 +72,67 @@ export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
         type: type as any,
         content: base64,
         mimeType: file.type,
-        parentId: currentFolderId,
+        parentId: parentId,
         size: file.size
       });
     };
     reader.readAsDataURL(file);
   };
 
+  const traverseEntry = async (entry: any, parentId: string | null) => {
+    if (entry.isFile) {
+      const file = await new Promise<File>((resolve) => entry.file(resolve));
+      await processFile(file, parentId);
+    } else if (entry.isDirectory) {
+      const newFolderId = addFolder(entry.name, parentId);
+      const reader = entry.createReader();
+      const entries = await new Promise<any[]>((resolve) => {
+        const allEntries: any[] = [];
+        const read = () => {
+          reader.readEntries((results: any[]) => {
+            if (results.length) {
+              allEntries.push(...results);
+              read();
+            } else {
+              resolve(allEntries);
+            }
+          });
+        };
+        read();
+      });
+      for (const childEntry of entries) {
+        await traverseEntry(childEntry, newFolderId);
+      }
+    }
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    await processFile(file);
+    const files = Array.from(e.target.files || []);
+    for (const file of files) {
+      await processFile(file);
+    }
+  };
+
+  const handleFolderUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const folderCache: Record<string, string> = {};
+
+    for (const file of files) {
+      const parts = (file as any).webkitRelativePath.split('/');
+      let lastParentId = currentFolderId;
+
+      for (let i = 0; i < parts.length - 1; i++) {
+        const path = parts.slice(0, i + 1).join('/');
+        if (!folderCache[path]) {
+          folderCache[path] = addFolder(parts[i], lastParentId);
+        }
+        lastParentId = folderCache[path];
+      }
+
+      await processFile(file, lastParentId);
+    }
   };
 
   const onDragOver = (e: React.DragEvent) => {
@@ -89,9 +147,16 @@ export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
   const onDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    const files = Array.from(e.dataTransfer.files);
-    for (const file of files) {
-      await processFile(file);
+    
+    const items = Array.from(e.dataTransfer.items);
+    for (const item of items) {
+      const entry = (item as any).webkitGetAsEntry?.();
+      if (entry) {
+        await traverseEntry(entry, currentFolderId);
+      } else {
+        const file = item.getAsFile();
+        if (file) await processFile(file);
+      }
     }
   };
 
@@ -195,10 +260,22 @@ export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
             {isAtRoot ? 'Add Student' : 'New Folder'}
           </button>
           
+          <label className="flex items-center gap-2 px-5 py-2 text-[10px] font-bold uppercase tracking-widest border border-[#E5E5E1] hover:bg-white rounded transition-colors cursor-pointer">
+            <FolderIcon size={14} />
+            Ingest Folder
+            <input 
+              type="file" 
+              className="hidden" 
+              onChange={handleFolderUpload} 
+              webkitdirectory="" 
+              directory="" 
+            />
+          </label>
+
           <label className="flex items-center gap-2 px-5 py-2 text-[10px] font-bold uppercase tracking-widest bg-text-primary text-white hover:opacity-90 rounded transition-opacity cursor-pointer shadow-[0_4px_12px_rgba(0,0,0,0.1)]">
             <UploadIcon size={14} />
             Ingest File
-            <input type="file" className="hidden" onChange={handleFileUpload} accept=".pdf,.mp3,.wav,.txt,.docx,.png,.jpg,.jpeg,.pptx" />
+            <input type="file" className="hidden" onChange={handleFileUpload} multiple accept=".pdf,.mp3,.wav,.txt,.docx,.png,.jpg,.jpeg,.pptx" />
           </label>
         </div>
       </header>
