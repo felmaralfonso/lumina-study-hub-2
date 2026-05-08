@@ -11,7 +11,7 @@ interface SidebarProps {
 export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
   const menuItems = [
     { id: 'library', label: 'My Documents', icon: FolderIcon },
-    { id: 'games', label: 'AI Games', icon: GamepadIcon },
+    { id: 'games', label: 'Games', icon: GamepadIcon },
     { id: 'themes', label: 'Themes', icon: PaletteIcon },
   ];
 
@@ -19,7 +19,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
     <div className="w-64 bg-sidebar-bg border-r border-[#E5E5E1] flex flex-col h-screen">
       <div className="p-8">
         <h1 className="text-3xl font-serif italic tracking-tight mb-10 text-text-primary">Lumina.</h1>
-        
+
         <nav className="flex-1 space-y-8">
           <section>
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9A9A96] mb-4">Workspace</p>
@@ -33,8 +33,8 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
                       onClick={() => setActiveTab(item.id as TabType)}
                       className={cn(
                         "w-full flex items-center gap-3 px-3 py-2 rounded text-sm transition-all duration-200",
-                        isActive 
-                          ? "bg-[#F0F0EE] text-text-primary font-bold shadow-sm" 
+                        isActive
+                          ? "bg-[#F0F0EE] text-text-primary font-bold shadow-sm"
                           : "text-[#6A6A64] hover:bg-[#F9F9F7] font-medium"
                       )}
                     >
