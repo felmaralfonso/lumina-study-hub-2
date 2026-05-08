@@ -37,11 +37,11 @@ interface FileViewerProps {
   blackboardWidth?: number;
 }
 
-export default function FileViewer({ 
-  file, 
-  allFiles, 
-  onFileSelect, 
-  onClose, 
+export default function FileViewer({
+  file,
+  allFiles,
+  onFileSelect,
+  onClose,
   onSetActiveAudio,
   blackboardWidth = 0
 }: FileViewerProps) {
@@ -121,11 +121,11 @@ export default function FileViewer({
   const docContent = file.type === 'doc' ? (editedDocContent ?? file.content) : '';
 
   // Non-audio files for the document list (exclude audio)
-  const documentFiles = useMemo(() => 
-    allFiles.filter(f => 
-      f.type !== 'audio' && 
+  const documentFiles = useMemo(() =>
+    allFiles.filter(f =>
+      f.type !== 'audio' &&
       (f.parentId || null) === (file.parentId || null) && (
-        f.name.toLowerCase().includes(switcherSearch.toLowerCase()) || 
+        f.name.toLowerCase().includes(switcherSearch.toLowerCase()) ||
         f.type.toLowerCase().includes(switcherSearch.toLowerCase())
       )
     ),
@@ -133,7 +133,7 @@ export default function FileViewer({
   );
 
   // Audio files from the same folder as the currently viewed file
-  const folderAudioFiles = useMemo(() => 
+  const folderAudioFiles = useMemo(() =>
     allFiles.filter(f => f.type === 'audio' && (f.parentId || null) === (file.parentId || null)),
     [allFiles, file.parentId]
   );
@@ -142,19 +142,19 @@ export default function FileViewer({
   const showFullSidebar = isSidebarOpen || isHovered;
 
   return (
-    <div 
+    <div
       className="fixed inset-y-0 left-0 z-50 bg-[#F9F9F7] flex font-sans overflow-hidden transition-all duration-300 ease-in-out"
       style={{ right: blackboardWidth }}
     >
-      
+
       {/* Left Navigation Sidebar (Floating Overlay) */}
-      <aside 
+      <aside
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={cn(
           "absolute left-0 top-0 bottom-0 z-[160] flex flex-col transition-all duration-500 ease-in-out",
-          showFullSidebar 
-            ? "w-80 translate-x-0" 
+          showFullSidebar
+            ? "w-80 translate-x-0"
             : "w-16 translate-x-0"
         )}
       >
@@ -162,108 +162,108 @@ export default function FileViewer({
           "h-full flex flex-col transition-all duration-500",
           showFullSidebar ? "bg-white border-r border-[#E5E5E1] shadow-2xl" : "bg-transparent"
         )}>
-        {showFullSidebar ? (
-          <>
-            <div className="p-4 border-b border-[#E5E5E1] flex items-center justify-between bg-white shrink-0">
-              <button 
-                onClick={onClose} 
-                className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#9A9A96] hover:text-[#E11D48] transition-colors"
-                title="Close Document"
-              >
-                <XIcon size={16} />
-                Close Document
-              </button>
-              <button 
-                onClick={() => setIsSidebarOpen(false)}
-                className="p-1 text-[#9A9A96] hover:text-text-primary hover:bg-[#F9F9F7] rounded transition-colors"
-                title="Collapse Sidebar"
-              >
-                <ChevronLeftIcon size={18} />
-              </button>
-            </div>
-            {/* ... rest of full sidebar content ... */}
-
-
-            <div className="p-6 border-b border-[#E5E5E1] bg-[#F9F9F7] shrink-0">
-              <h2 className="text-sm font-bold tracking-tight text-text-primary mb-1 line-clamp-2" title={file.name}>
-                {file.name}
-              </h2>
-              <p className="text-[10px] text-[#9A9A96] font-mono uppercase truncate">
-                {file.type} • {file.id.slice(0, 8)}
-              </p>
-            </div>
-
-            <div className="flex-1 flex flex-col overflow-hidden bg-white">
-              <div className="p-4 border-b border-[#E5E5E1] shrink-0">
-                <input 
-                  value={switcherSearch}
-                  onChange={(e) => setSwitcherSearch(e.target.value)}
-                  placeholder="Search documents..."
-                  className="w-full bg-[#F9F9F7] border border-[#E5E5E1] px-3 py-2 text-[10px] uppercase font-bold tracking-widest outline-none focus:border-text-primary transition-colors"
-                />
+          {showFullSidebar ? (
+            <>
+              <div className="p-4 border-b border-[#E5E5E1] flex items-center justify-between bg-white shrink-0">
+                <button
+                  onClick={onClose}
+                  className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#9A9A96] hover:text-[#E11D48] transition-colors"
+                  title="Close Document"
+                >
+                  <XIcon size={16} />
+                  Close Document
+                </button>
+                <button
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="p-1 text-[#9A9A96] hover:text-text-primary hover:bg-[#F9F9F7] rounded transition-colors"
+                  title="Collapse Sidebar"
+                >
+                  <ChevronLeftIcon size={18} />
+                </button>
               </div>
-              
-              <div className="flex-1 overflow-auto">
-                <p className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-[#9A9A96] sticky top-0 bg-white/90 backdrop-blur-sm z-10 border-b border-[#E5E5E1]/50">
-                  Documents
-                </p>
-                {documentFiles.map(f => (
-                  <div
-                    key={f.id}
-                    onClick={() => onFileSelect(f)}
-                    className={cn(
-                      "px-4 py-3 text-left text-xs hover:bg-[#F9F9F7] flex items-center justify-between group cursor-pointer transition-colors border-l-4",
-                      f.id === file.id ? "bg-[#F9F9F7] border-text-primary" : "border-transparent"
-                    )}
-                  >
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <span className="opacity-40 shrink-0">
-                        {f.type === 'pdf' ? '📄' : f.type === 'image' ? '🖼️' : '📝'}
-                      </span>
-                      <span className={cn("truncate", f.id === file.id ? "font-bold text-text-primary" : "text-[#6A6A64]")}>
-                        {f.name}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-                {documentFiles.length === 0 && (
-                  <div className="px-4 py-8 text-center text-[10px] italic text-[#9A9A96]">No matching documents.</div>
-                )}
-              </div>
-            </div>
+              {/* ... rest of full sidebar content ... */}
 
-            {/* Audio Section — shows audio files from the current folder */}
-            {folderAudioFiles.length > 0 && (
-              <div className="border-t border-[#E5E5E1] bg-white shrink-0 max-h-52 flex flex-col overflow-hidden">
-                <p className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-[#9A9A96] bg-[#F9F9F7] border-b border-[#E5E5E1]/50 shrink-0">
-                  🎵 Folder Audio
+
+              <div className="p-6 border-b border-[#E5E5E1] bg-[#F9F9F7] shrink-0">
+                <h2 className="text-sm font-bold tracking-tight text-text-primary mb-1 line-clamp-2" title={file.name}>
+                  {file.name}
+                </h2>
+                <p className="text-[10px] text-[#9A9A96] font-mono uppercase truncate">
+                  {file.type} • {file.id.slice(0, 8)}
                 </p>
-                <div className="overflow-auto flex-1">
-                  {folderAudioFiles.map(af => (
-                    <button
-                      key={af.id}
-                      onClick={() => onSetActiveAudio(af)}
-                      className="w-full px-4 py-2.5 text-left text-xs hover:bg-[#F9F9F7] flex items-center gap-3 group transition-colors"
+              </div>
+
+              <div className="flex-1 flex flex-col overflow-hidden bg-white">
+                <div className="p-4 border-b border-[#E5E5E1] shrink-0">
+                  <input
+                    value={switcherSearch}
+                    onChange={(e) => setSwitcherSearch(e.target.value)}
+                    placeholder="Search documents..."
+                    className="w-full bg-[#F9F9F7] border border-[#E5E5E1] px-3 py-2 text-[10px] uppercase font-bold tracking-widest outline-none focus:border-text-primary transition-colors"
+                  />
+                </div>
+
+                <div className="flex-1 overflow-auto">
+                  <p className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-[#9A9A96] sticky top-0 bg-white/90 backdrop-blur-sm z-10 border-b border-[#E5E5E1]/50">
+                    Documents
+                  </p>
+                  {documentFiles.map(f => (
+                    <div
+                      key={f.id}
+                      onClick={() => onFileSelect(f)}
+                      className={cn(
+                        "px-4 py-3 text-left text-xs hover:bg-[#F9F9F7] flex items-center justify-between group cursor-pointer transition-colors border-l-4",
+                        f.id === file.id ? "bg-[#F9F9F7] border-text-primary" : "border-transparent"
+                      )}
                     >
-                      <DiscIcon size={12} className="text-accent-primary opacity-50 group-hover:opacity-100 shrink-0" />
-                      <span className="truncate text-[#6A6A64] group-hover:text-text-primary transition-colors">{af.name}</span>
-                      <PlayIcon size={10} className="ml-auto text-accent-primary opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                    </button>
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <span className="opacity-40 shrink-0">
+                          {f.type === 'pdf' ? '📄' : f.type === 'image' ? '🖼️' : '📝'}
+                        </span>
+                        <span className={cn("truncate", f.id === file.id ? "font-bold text-text-primary" : "text-[#6A6A64]")}>
+                          {f.name}
+                        </span>
+                      </div>
+                    </div>
                   ))}
+                  {documentFiles.length === 0 && (
+                    <div className="px-4 py-8 text-center text-[10px] italic text-[#9A9A96]">No matching documents.</div>
+                  )}
                 </div>
               </div>
-            )}
-          </>
-        ) : (
-          <div className="w-full h-full bg-transparent cursor-w-resize" />
-        )}
+
+              {/* Audio Section — shows audio files from the current folder */}
+              {folderAudioFiles.length > 0 && (
+                <div className="border-t border-[#E5E5E1] bg-white shrink-0 max-h-52 flex flex-col overflow-hidden">
+                  <p className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-[#9A9A96] bg-[#F9F9F7] border-b border-[#E5E5E1]/50 shrink-0">
+                    🎵 Folder Audio
+                  </p>
+                  <div className="overflow-auto flex-1">
+                    {folderAudioFiles.map(af => (
+                      <button
+                        key={af.id}
+                        onClick={() => onSetActiveAudio(af)}
+                        className="w-full px-4 py-2.5 text-left text-xs hover:bg-[#F9F9F7] flex items-center gap-3 group transition-colors"
+                      >
+                        <DiscIcon size={12} className="text-accent-primary opacity-50 group-hover:opacity-100 shrink-0" />
+                        <span className="truncate text-[#6A6A64] group-hover:text-text-primary transition-colors">{af.name}</span>
+                        <PlayIcon size={10} className="ml-auto text-accent-primary opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="w-full h-full bg-transparent cursor-w-resize" />
+          )}
         </div>
       </aside>
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-hidden relative flex bg-[#F9F9F7]">
-        <div 
-          className="flex-1 overflow-auto relative cursor-default" 
+        <div
+          className="flex-1 overflow-auto relative cursor-default"
           ref={containerRef}
         >
           <div className="w-full h-full relative">
@@ -291,7 +291,7 @@ export default function FileViewer({
                 </div>
                 <h3 className="text-2xl font-serif mb-2 italic">{file.name}</h3>
                 <p className="text-xs opacity-50 mb-12 font-mono">Compatible with Google Meet Tab Sharing</p>
-                
+
                 <div className="w-full max-w-md bg-[#F9F9F7] p-6 border border-[#E5E5E1]">
                   <audio controls className="w-full" autoPlay>
                     <source src={file.content} type={file.mimeType} />
@@ -301,20 +301,20 @@ export default function FileViewer({
             )}
 
             {file.type === 'doc' && (
-               <div 
-                 contentEditable
-                 className="w-full max-w-4xl mx-auto my-8 min-h-[1056px] p-20 bg-white text-black font-serif prose prose-lg focus:outline-none shadow-sm border border-[#E5E5E1]"
-                 dangerouslySetInnerHTML={{ __html: decodeContent(docContent) }}
-                 onBlur={(e) => setEditedDocContent(btoa(unescape(encodeURIComponent(e.currentTarget.innerHTML))))}
-               />
+              <div
+                contentEditable
+                className="w-full max-w-4xl mx-auto my-8 min-h-[1056px] p-20 bg-white text-black font-serif prose prose-lg focus:outline-none shadow-sm border border-[#E5E5E1]"
+                dangerouslySetInnerHTML={{ __html: decodeContent(docContent) }}
+                onBlur={(e) => setEditedDocContent(btoa(unescape(encodeURIComponent(e.currentTarget.innerHTML))))}
+              />
             )}
 
             {file.type === 'image' && (
               <div className="w-full h-full flex items-center justify-center p-8">
-                <img 
-                  src={file.content} 
-                  alt={file.name} 
-                  className="max-w-full max-h-full object-contain shadow-2xl bg-white p-2 border border-[#E5E5E1]" 
+                <img
+                  src={file.content}
+                  alt={file.name}
+                  className="max-w-full max-h-full object-contain shadow-2xl bg-white p-2 border border-[#E5E5E1]"
                   referrerPolicy="no-referrer"
                 />
               </div>
