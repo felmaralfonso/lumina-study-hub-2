@@ -97,6 +97,13 @@ export function useFileSystem() {
     }));
   };
 
+  const resetFileSystem = () => {
+    setState({ files: [], folders: INITIAL_FOLDERS });
+    localforage.clear();
+    localStorage.clear();
+    window.location.reload();
+  };
+
   return {
     state,
     addFolder,
@@ -104,6 +111,7 @@ export function useFileSystem() {
     deleteFile,
     deleteFolder,
     updateFile,
-    updateFolder
+    updateFolder,
+    resetFileSystem
   };
 }

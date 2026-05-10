@@ -10,7 +10,7 @@ interface FileExplorerProps {
 }
 
 export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
-  const { state, addFolder, addFile, deleteFile, deleteFolder, updateFolder } = useFileSystem();
+  const { state, addFolder, addFile, deleteFile, deleteFolder, updateFolder, resetFileSystem } = useFileSystem();
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
@@ -166,7 +166,7 @@ export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
       addFile({
         name: name + '.doc',
         type: 'doc',
-        content: btoa(unescape(encodeURIComponent('<p>Start writing...</p>'))),
+        content: btoa(unescape(encodeURIComponent(''))),
         mimeType: 'text/html',
         parentId: currentFolderId,
       });
@@ -233,7 +233,6 @@ export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
               {showNotes ? 'Close Notes' : 'Open Notes'}
             </button>
           )}
-
 
 
           <button 
@@ -400,8 +399,8 @@ export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#9A9A96]">Notes for {currentFolder.name}</h3>
               </div>
               <textarea 
-                className="w-full min-h-[300px] bg-[#F9F9F7] p-4 rounded-xl resize-none text-sm font-serif italic outline-none border border-transparent focus:border-accent-primary/20 transition-all"
-                placeholder="Write student-specific notes here..."
+                className="w-full min-h-[300px] bg-[#F9F9F7] p-4 rounded-xl resize-none text-sm font-serif italic outline-none border border-transparent focus:border-accent-primary/20 transition-all placeholder:text-[#BCBCB9]/50"
+                placeholder="Aa"
                 value={currentFolder.notes || ''}
                 onChange={(e) => updateFolder(currentFolder.id, { notes: e.target.value })}
               />

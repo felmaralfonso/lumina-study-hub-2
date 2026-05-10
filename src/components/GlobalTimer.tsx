@@ -70,8 +70,10 @@ export default function GlobalTimer({ isEmbedded }: { isEmbedded?: boolean }) {
   };
 
   const resetTimer = () => {
-    setIsRunning(false);
-    setTimeLeft(initialTime);
+    if (confirm('Reset timer to initial state?')) {
+      setIsRunning(false);
+      setTimeLeft(initialTime);
+    }
   };
 
   return (
@@ -80,7 +82,7 @@ export default function GlobalTimer({ isEmbedded }: { isEmbedded?: boolean }) {
     )} ref={containerRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-12 h-12 bg-white border border-[#E5E5E1] border-r-0 shadow-lg flex items-center justify-center rounded-l-xl hover:bg-[#F9F9F7] transition-all group overflow-hidden relative"
+        className="w-12 h-12 bg-white border border-[#E5E5E1] border-r-0 shadow-lg flex items-center justify-center rounded-l-xl transition-all group overflow-hidden relative"
       >
         <motion.div
            animate={isRunning ? { rotate: 360 } : { rotate: 0 }}

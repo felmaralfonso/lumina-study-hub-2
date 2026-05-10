@@ -57,12 +57,12 @@ export default function GlobalAudio({ activeAudio, onClearAudio, allFiles, onSel
 
   return (
     <div className={cn(
-      isEmbedded ? "relative flex" : "fixed right-0 top-24 z-[100] flex"
+      isEmbedded ? "relative flex flex-row-reverse" : "fixed right-0 top-24 z-[100] flex flex-row-reverse"
     )} ref={containerRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "w-12 h-12 flex items-center justify-center shadow-2xl rounded-l-2xl hover:translate-x-[-4px] transition-all relative",
+          "w-12 h-12 flex items-center justify-center shadow-2xl rounded-l-2xl transition-all relative",
           activeAudio ? "bg-accent-primary text-white" : "bg-white border border-[#E5E5E1] border-r-0 text-[#9A9A96]"
         )}
       >

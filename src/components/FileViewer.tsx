@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { HubFile } from '../types';
 import { XIcon, ChevronLeftIcon, ChevronRightIcon, PlayIcon, DiscIcon } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, getDescendantFolderIds } from '../lib/utils';
+import { Folder } from '../types';
+import StudyBoardInterface, { EditableDoc } from './StudyBoardInterface';
 
 // Build the iframe HTML once — EmbedPDF loads inside the iframe's own context,
 // so its WASM/workers are destroyed instantly by the browser when we remove
@@ -34,6 +36,7 @@ interface FileViewerProps {
   onSaveFile: (fileId: string, updates: Partial<Pick<HubFile, 'annotations' | 'content'>>) => void;
   externalActiveAudio: HubFile | null;
   onSetActiveAudio: (file: HubFile | null) => void;
+  allFolders: Folder[];
   blackboardWidth?: number;
 }
 
@@ -43,6 +46,7 @@ export default function FileViewer({
   onFileSelect,
   onClose,
   onSetActiveAudio,
+  allFolders,
   blackboardWidth = 0
 }: FileViewerProps) {
   const [switcherSearch, setSwitcherSearch] = useState('');
@@ -117,28 +121,32 @@ export default function FileViewer({
     }
   };
 
+  // Use the "fresh" file from state to ensure we always have latest content/annotations
+  const currentFile = allFiles.find(f => f.id === file.id) || file;
+
   // The actual content to render for docs — use edits if available, otherwise file.content
-  const docContent = file.type === 'doc' ? (editedDocContent ?? file.content) : '';
+  const docContent = currentFile.type === 'doc' ? (editedDocContent ?? currentFile.content) : '';
 
   // Non-audio files for the document list (exclude audio)
   const documentFiles = useMemo(() =>
     allFiles.filter(f =>
       f.type !== 'audio' &&
-      (f.parentId || null) === (file.parentId || null) && (
+      (f.parentId || null) === (currentFile.parentId || null) && (
         f.name.toLowerCase().includes(switcherSearch.toLowerCase()) ||
         f.type.toLowerCase().includes(switcherSearch.toLowerCase())
       )
     ),
-    [allFiles, switcherSearch, file.parentId]
+    [allFiles, switcherSearch, currentFile.parentId]
   );
 
-  // Audio files from the same folder as the currently viewed file
-  const folderAudioFiles = useMemo(() =>
-    allFiles.filter(f => f.type === 'audio' && (f.parentId || null) === (file.parentId || null)),
-    [allFiles, file.parentId]
-  );
+  // Audio files from the current folder and all its subfolders
+  const folderAudioFiles = useMemo(() => {
+    const contextFolderIds = getDescendantFolderIds(allFolders, currentFile.parentId);
+    return allFiles.filter(f => f.type === 'audio' && contextFolderIds.has(f.parentId));
+  }, [allFiles, allFolders, currentFile.parentId]);
 
   const [isHovered, setIsHovered] = useState(false);
+  const [localAnnotations, setLocalAnnotations] = useState<Record<string, any[]>>({});
   const showFullSidebar = isSidebarOpen || isHovered;
 
   return (
@@ -158,8 +166,17 @@ export default function FileViewer({
             : "w-16 translate-x-0"
         )}
       >
+        {/* Top Deadzone Shield: 
+            Blocks hover when closed, disappears when open to allow clicking */}
+        <div 
+          className={cn(
+            "absolute left-0 top-0 w-full h-20 z-[200]",
+            showFullSidebar ? "pointer-events-none" : "pointer-events-auto bg-transparent"
+          )}
+        />
+
         <div className={cn(
-          "h-full flex flex-col transition-all duration-500",
+          "h-full flex flex-col transition-all duration-500 relative z-10",
           showFullSidebar ? "bg-white border-r border-[#E5E5E1] shadow-2xl" : "bg-transparent"
         )}>
           {showFullSidebar ? (
@@ -216,10 +233,7 @@ export default function FileViewer({
                         f.id === file.id ? "bg-[#F9F9F7] border-text-primary" : "border-transparent"
                       )}
                     >
-                      <div className="flex items-center gap-3 overflow-hidden">
-                        <span className="opacity-40 shrink-0">
-                          {f.type === 'pdf' ? '📄' : f.type === 'image' ? '🖼️' : '📝'}
-                        </span>
+                      <div className="flex items-center gap-2 overflow-hidden">
                         <span className={cn("truncate", f.id === file.id ? "font-bold text-text-primary" : "text-[#6A6A64]")}>
                           {f.name}
                         </span>
@@ -267,16 +281,15 @@ export default function FileViewer({
           ref={containerRef}
         >
           <div className="w-full h-full relative">
-            {/* PDF iframe is ALWAYS in the DOM — never mounted/unmounted.
-                We toggle display:none so switching is instant with zero teardown. */}
-            <iframe
-              ref={iframeRef}
-              src={iframeSrc}
-              className="w-full h-full border-0 absolute inset-0"
-              sandbox="allow-scripts allow-same-origin"
-              title="PDF Viewer"
-              style={{ display: file.type === 'pdf' ? 'block' : 'none' }}
-            />
+            {currentFile.type === 'pdf' && (
+              <iframe
+                ref={iframeRef}
+                src={iframeSrc}
+                className="w-full h-full border-0 absolute inset-0 z-0"
+                sandbox="allow-scripts allow-same-origin"
+                title="PDF Viewer"
+              />
+            )}
 
             {file.type === 'audio' && (
               <div className="w-full h-full flex flex-col items-center justify-center p-12 bg-white">
@@ -300,20 +313,37 @@ export default function FileViewer({
               </div>
             )}
 
-            {file.type === 'doc' && (
-              <div
-                contentEditable
-                className="w-full max-w-4xl mx-auto my-8 min-h-[1056px] p-20 bg-white text-black font-serif prose prose-lg focus:outline-none shadow-sm border border-[#E5E5E1]"
-                dangerouslySetInnerHTML={{ __html: decodeContent(docContent) }}
-                onBlur={(e) => setEditedDocContent(btoa(unescape(encodeURIComponent(e.currentTarget.innerHTML))))}
-              />
+            {currentFile.type === 'doc' && (
+              <StudyBoardInterface
+                key={currentFile.id}
+                initialAnnotations={localAnnotations[currentFile.id] || currentFile.annotations || []}
+                onAnnotationsChange={(newAnnos) => {
+                  setLocalAnnotations(prev => ({ ...prev, [currentFile.id]: newAnnos }));
+                }}
+                width={containerRef.current?.clientWidth || 1000}
+                showTextTools={true}
+                onClearAll={() => {
+                  onSaveFile(currentFile.id, { content: '' });
+                }}
+              >
+                <EditableDoc 
+                  initialContent={decodeContent(currentFile.content)}
+                  onContentChange={(newContent) => {
+                    onSaveFile(currentFile.id, { content: btoa(unescape(encodeURIComponent(newContent))) });
+                  }}
+                  fontFamily="Inter, sans-serif"
+                  isEditable={true}
+                  color="#1A1A1A"
+                  lineHeight={1.6}
+                />
+              </StudyBoardInterface>
             )}
 
-            {file.type === 'image' && (
-              <div className="w-full h-full flex items-center justify-center p-8">
+            {currentFile.type === 'image' && (
+              <div className="w-full h-full flex items-center justify-center p-8 bg-white">
                 <img
-                  src={file.content}
-                  alt={file.name}
+                  src={currentFile.content}
+                  alt={currentFile.name}
                   className="max-w-full max-h-full object-contain shadow-2xl bg-white p-2 border border-[#E5E5E1]"
                   referrerPolicy="no-referrer"
                 />
