@@ -1,3 +1,12 @@
+import 'react';
+
+declare module 'react' {
+  interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
+    webkitdirectory?: string;
+    directory?: string;
+  }
+}
+
 export type FileType = 'pdf' | 'audio' | 'doc' | 'image';
 
 export interface Annotation {
@@ -15,6 +24,7 @@ export interface Annotation {
   fontFamily?: string;
 }
 
+
 export interface HubFile {
   id: string;
   name: string;
@@ -23,7 +33,8 @@ export interface HubFile {
   content: string; // Base64 or text
   mimeType: string;
   createdAt: number;
-  annotations: Annotation[];
+  size?: number;
+  annotations?: Annotation[];
 }
 
 export interface Folder {
@@ -39,7 +50,7 @@ export interface FileSystemState {
   folders: Folder[];
 }
 
-export type ThemeType = 'light' | 'dark' | 'sepia' | 'nordic';
+export type ThemeType = 'light' | 'sepia' | 'midnight' | 'forest' | 'slate' | 'solar' | 'espresso' | 'velum';
 
 export interface Game {
   id: string;

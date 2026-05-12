@@ -82,7 +82,7 @@ export default function GlobalTimer({ isEmbedded }: { isEmbedded?: boolean }) {
     )} ref={containerRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-12 h-12 bg-white border border-[#E5E5E1] border-r-0 shadow-lg flex items-center justify-center rounded-l-xl transition-all group overflow-hidden relative"
+        className="w-12 h-12 bg-white border border-[#E5E5E1] border-r-0 flex items-center justify-center rounded-l-xl transition-all group overflow-hidden relative"
       >
         <motion.div
            animate={isRunning ? { rotate: 360 } : { rotate: 0 }}
@@ -103,7 +103,7 @@ export default function GlobalTimer({ isEmbedded }: { isEmbedded?: boolean }) {
             initial={{ width: 0, opacity: 0, x: 20 }}
             animate={{ width: 280, opacity: 1, x: 0 }}
             exit={{ width: 0, opacity: 0, x: 20 }}
-            className="h-[300px] bg-white border border-[#E5E5E1] shadow-2xl flex flex-col p-6 rounded-l-2xl overflow-hidden"
+            className="h-[300px] bg-white border border-[#E5E5E1] flex flex-col p-6 rounded-l-2xl overflow-hidden"
           >
             <div className="flex items-center justify-between mb-8 border-b border-[#F0F0EE] pb-4">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#9A9A96]">Focus Engine</h3>
@@ -177,7 +177,7 @@ export default function GlobalTimer({ isEmbedded }: { isEmbedded?: boolean }) {
                 
                 <button 
                   onClick={() => setIsRunning(!isRunning)}
-                  className="w-16 h-16 bg-text-primary text-white rounded-full flex items-center justify-center hover:opacity-90 transition-all shadow-xl"
+                  className="w-16 h-16 bg-text-primary text-white rounded-full flex items-center justify-center hover:opacity-90 transition-all"
                 >
                   {isRunning ? <PauseIcon size={24} fill="currentColor" /> : <PlayIcon size={24} fill="currentColor" className="ml-1" />}
                 </button>

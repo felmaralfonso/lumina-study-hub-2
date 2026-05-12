@@ -8,13 +8,15 @@ const STORAGE_KEY = 'lumina_fs_v1';
 export function useFileSystem() {
   const [state, setState] = useState<FileSystemState>({ files: [], folders: INITIAL_FOLDERS });
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [quotaInfo, setQuotaInfo] = useState<{ used: number; total: number } | null>(null);
+  const [storageError, setStorageError] = useState<string | null>(null);
 
   useEffect(() => {
     localforage.getItem<FileSystemState>(STORAGE_KEY).then((saved) => {
       if (saved && saved.folders) {
         setState(saved);
       } else {
-        // Fallback for old localStorage data
         const old = localStorage.getItem(STORAGE_KEY);
         if (old) {
           try {
@@ -29,9 +31,25 @@ export function useFileSystem() {
 
   useEffect(() => {
     if (isLoaded) {
-      localforage.setItem(STORAGE_KEY, state).catch(e => {
-        console.error("Storage limit hit or error:", e);
-      });
+      setIsSaving(true);
+      setStorageError(null);
+      localforage.setItem(STORAGE_KEY, state)
+        .then(() => {
+          setTimeout(() => setIsSaving(false), 800);
+          if (navigator.storage && navigator.storage.estimate) {
+            navigator.storage.estimate().then(estimate => {
+              setQuotaInfo({ 
+                used: estimate.usage || 0, 
+                total: estimate.quota || 0 
+              });
+            });
+          }
+        })
+        .catch(e => {
+          console.error("Storage error:", e);
+          setStorageError("Memory limit reached. Try deleting unused files.");
+          setIsSaving(false);
+        });
     }
   }, [state, isLoaded]);
 
@@ -65,7 +83,6 @@ export function useFileSystem() {
   };
 
   const deleteFolder = (id: string) => {
-    // Delete folder and all its contents recursively
     const folderIdsToDelete = new Set([id]);
     const findChildren = (pid: string) => {
       state.folders.forEach(f => {
@@ -98,7 +115,7 @@ export function useFileSystem() {
   };
 
   const resetFileSystem = () => {
-    setState({ files: [], folders: INITIAL_FOLDERS });
+    setState({ files: [], folders: [] });
     localforage.clear();
     localStorage.clear();
     window.location.reload();
@@ -106,6 +123,9 @@ export function useFileSystem() {
 
   return {
     state,
+    isSaving,
+    quotaInfo,
+    storageError,
     addFolder,
     addFile,
     deleteFile,

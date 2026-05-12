@@ -17,6 +17,7 @@ interface BlackboardProps {
 export default function Blackboard({ isOpen, setIsOpen, width, setWidth, setIsResizing, isEmbedded }: BlackboardProps) {
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [docContent, setDocContent] = useState('');
+  const [color, setColor] = useState('#1A1A1A');
 
   return (
     <div className={cn(
@@ -31,7 +32,7 @@ export default function Blackboard({ isOpen, setIsOpen, width, setWidth, setIsRe
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="h-full bg-[#F5F5F3] shadow-[-20px_0_40px_rgba(0,0,0,0.1)] flex flex-col pointer-events-auto border-l border-[#E5E5E1] relative"
+            className="h-full bg-[#F5F5F3] flex flex-col pointer-events-auto border-l border-[#E5E5E1] relative"
             style={{ width }}
           >
             {/* Resize Handle */}
@@ -46,13 +47,15 @@ export default function Blackboard({ isOpen, setIsOpen, width, setWidth, setIsRe
               width={width}
               showTextTools={true}
               onClearAll={() => setDocContent('')}
+              activeColor={color}
+              onColorChange={setColor}
             >
               <EditableDoc 
                 initialContent={docContent}
                 onContentChange={setDocContent}
                 fontFamily="Inter, sans-serif"
                 isEditable={true}
-                color="#1A1A1A"
+                color={color}
                 lineHeight={1.6}
               />
             </StudyBoardInterface>

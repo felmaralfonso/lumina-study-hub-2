@@ -1,58 +1,76 @@
 import { useTheme } from '../ThemeContext';
 import { THEMES } from '../constants';
 import { ThemeType } from '../types';
-import { CheckIcon } from 'lucide-react';
+import { CheckIcon, HardDriveIcon, ShieldAlertIcon, InfoIcon, RefreshCwIcon, SaveIcon, PaletteIcon } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useState } from 'react';
 
 export default function ThemeManager() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="p-12 flex-1 max-w-5xl mx-auto w-full bg-[#F9F9F7]">
+    <div className="p-12 flex-1 max-w-6xl mx-auto w-full pb-32">
       <header className="mb-16">
-        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#9A9A96] mb-4">Workspace Customization</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-50 mb-4">Workspace Control Center</p>
         <h1 className="text-5xl font-serif tracking-tight">Theme Studio.</h1>
-        <p className="text-[#6A6A64] text-lg mt-4 italic font-serif">Tailor your digital environment for focus and clarity.</p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {(Object.keys(THEMES) as ThemeType[]).map((themeKey) => {
-          const t = THEMES[themeKey];
-          const isActive = theme === themeKey;
-          
-          return (
-            <button
-              key={themeKey}
-              onClick={() => setTheme(themeKey)}
-              className={cn(
-                "group relative overflow-hidden transition-all p-10 text-left border bg-white",
-                isActive ? "border-text-primary shadow-[0_8px_30px_rgba(0,0,0,0.08)]" : "border-[#E5E5E1] hover:border-[#BCBCB9]"
-              )}
-            >
-              <div className="flex justify-between items-start mb-16">
-                <div>
-                  <h3 className="font-serif text-2xl" style={{ color: t.colors.text }}>{t.name}</h3>
-                  <div className="mt-4 flex gap-1.5">
-                    <div className="w-5 h-5 rounded-full border border-black/10" style={{ backgroundColor: t.colors.accent }} />
-                    <div className="w-5 h-5 rounded-full border border-black/10" style={{ backgroundColor: t.colors.sidebar }} />
+      <section className="mb-20">
+        <h2 className="text-xs font-bold uppercase tracking-widest opacity-50 mb-8 flex items-center gap-2">
+          <PaletteIcon size={14} /> Academic Collections
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {(Object.keys(THEMES) as ThemeType[]).map((themeKey) => {
+            const t = THEMES[themeKey];
+            const isActive = theme === themeKey;
+            
+            return (
+              <button
+                key={themeKey}
+                onClick={() => setTheme(themeKey)}
+                className={cn(
+                  "group relative overflow-hidden transition-all border p-1 rounded-2xl",
+                  isActive 
+                    ? "border-accent-primary ring-4 ring-accent-primary/10 shadow-2xl" 
+                    : "border-[#E5E5E1] hover:border-accent-primary/50 hover:shadow-lg"
+                )}
+                style={{ backgroundColor: t.colors.bg }}
+              >
+                {/* Mock UI Preview */}
+                <div className="aspect-[16/10] w-full rounded-t-xl overflow-hidden flex border-b border-black/5">
+                  <div className="w-12 h-full border-r border-black/5" style={{ backgroundColor: t.colors.sidebar }} />
+                  <div className="flex-1 p-4 space-y-3">
+                    <div className="h-2 w-1/2 rounded-full opacity-20" style={{ backgroundColor: t.colors.text }} />
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="h-12 rounded-lg opacity-10" style={{ backgroundColor: t.colors.text }} />
+                      <div className="h-12 rounded-lg opacity-10" style={{ backgroundColor: t.colors.text }} />
+                    </div>
+                    <div className="h-2 w-full rounded-full opacity-10" style={{ backgroundColor: t.colors.text }} />
                   </div>
                 </div>
-                {isActive && (
-                  <div className="bg-text-primary text-white p-1 rounded-full">
-                    <CheckIcon size={16} />
-                  </div>
-                )}
-              </div>
 
-              <div className="space-y-3 opacity-20 group-hover:opacity-40 transition-opacity">
-                <div className="h-1 w-2/3" style={{ backgroundColor: t.colors.text }} />
-                <div className="h-1 w-full" style={{ backgroundColor: t.colors.text }} />
-                <div className="h-1 w-1/2" style={{ backgroundColor: t.colors.text }} />
-              </div>
-            </button>
-          );
-        })}
-      </div>
+                <div className="p-6 flex items-center justify-between">
+                  <div className="flex flex-col gap-1">
+                    <h3 className="font-serif text-lg leading-none" style={{ color: t.colors.text }}>{t.name}</h3>
+                    <div className="flex gap-1 items-center mt-2">
+                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: t.colors.accent }} />
+                       <div className="w-3 h-3 rounded-full opacity-50" style={{ backgroundColor: t.colors.text }} />
+                       <div className="w-3 h-3 rounded-full opacity-30" style={{ backgroundColor: t.colors.text }} />
+                    </div>
+                  </div>
+                  {isActive && (
+                    <div className="bg-accent-primary text-white p-1.5 rounded-full shadow-lg">
+                      <CheckIcon size={14} />
+                    </div>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }
+
+

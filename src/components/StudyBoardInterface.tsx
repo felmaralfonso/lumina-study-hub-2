@@ -13,6 +13,8 @@ interface StudyBoardInterfaceProps {
   onClearAll?: () => void;
   isLibraryDoc?: boolean;
   isFixed?: boolean;
+  activeColor?: string;
+  onColorChange?: (color: string) => void;
 }
 
 export function EditableDoc({ initialContent, onContentChange, fontFamily, isEditable, color, lineHeight }: { 
@@ -73,10 +75,15 @@ export default function StudyBoardInterface({
   children,
   showTextTools = false,
   onClearAll,
-  isFixed = false
+  isFixed = false,
+  activeColor,
+  onColorChange
 }: StudyBoardInterfaceProps) {
   const [tool, setTool] = useState<'pen' | 'rect' | 'circle' | 'eraser' | 'cursor'>('cursor');
-  const [color, setColor] = useState('#1A1A1A');
+  const [localColor, setLocalColor] = useState('#1A1A1A');
+  const color = activeColor || localColor;
+  const setColor = onColorChange || setLocalColor;
+  
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [scale, setScale] = useState(1);
   const [zoomInput, setZoomInput] = useState('100%');
@@ -152,7 +159,7 @@ export default function StudyBoardInterface({
   return (
     <div className="flex-1 flex flex-col bg-[#F5F5F3] h-full" ref={panelRef}>
       {/* Toolbar */}
-      <div className="px-6 py-3 bg-white border-b border-[#E5E5E1] flex items-center justify-between shrink-0 shadow-sm z-50">
+      <div className="px-6 py-3 bg-white border-b border-[#E5E5E1] flex items-center justify-between shrink-0 z-50">
         <div className="flex items-center gap-1">
           {tools.map((t) => (
             <button

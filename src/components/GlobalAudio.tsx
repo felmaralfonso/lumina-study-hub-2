@@ -16,8 +16,43 @@ export default function GlobalAudio({ activeAudio, onClearAudio, allFiles, onSel
   const [isOpen, setIsOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  const formatTime = (time: number) => {
+    if (isNaN(time)) return "0:00";
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const time = Number(e.target.value);
+    setCurrentTime(time);
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+    }
+  };
+
+  const handleRewind = () => {
+    if (audioRef.current) {
+      const newTime = Math.max(0, audioRef.current.currentTime - 10);
+      audioRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
+  };
+
+  const handleSpeedChange = () => {
+    const rates = [0.75, 1, 1.25, 1.5, 2];
+    const nextRate = rates[(rates.indexOf(playbackRate) + 1) % rates.length];
+    setPlaybackRate(nextRate);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = nextRate;
+    }
+  };
 
   const audioFiles = allFiles.filter(f => f.type === 'audio');
 
@@ -39,8 +74,11 @@ export default function GlobalAudio({ activeAudio, onClearAudio, allFiles, onSel
       setIsOpen(true);
       setIsPlaying(true);
       if (audioRef.current) {
+        audioRef.current.playbackRate = playbackRate;
         audioRef.current.load();
-        audioRef.current.play();
+        audioRef.current.play().then(() => {
+          if (audioRef.current) audioRef.current.playbackRate = playbackRate;
+        });
       }
     }
   }, [activeAudio]);
@@ -62,7 +100,7 @@ export default function GlobalAudio({ activeAudio, onClearAudio, allFiles, onSel
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "w-12 h-12 flex items-center justify-center shadow-2xl rounded-l-2xl transition-all relative",
+          "w-12 h-12 flex items-center justify-center rounded-l-2xl transition-all relative",
           activeAudio ? "bg-accent-primary text-white" : "bg-white border border-[#E5E5E1] border-r-0 text-[#9A9A96]"
         )}
       >
@@ -86,7 +124,7 @@ export default function GlobalAudio({ activeAudio, onClearAudio, allFiles, onSel
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 300, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
-            className="h-[320px] bg-white border border-[#E5E5E1] shadow-2xl flex flex-col p-6 rounded-l-2xl overflow-hidden"
+            className="h-[380px] bg-white border border-[#E5E5E1] flex flex-col p-6 rounded-l-2xl overflow-hidden"
           >
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
@@ -175,15 +213,49 @@ export default function GlobalAudio({ activeAudio, onClearAudio, allFiles, onSel
                     <MusicIcon size={32} />
                   </div>
 
-                  <h4 className="text-sm font-serif italic mb-6 truncate w-full text-center px-4">{activeAudio.name}</h4>
+                  <h4 className="text-sm font-serif italic mb-4 truncate w-full text-center px-4">{activeAudio.name}</h4>
                   
-                  <div className="flex items-center gap-4">
+                  {/* Scrubber */}
+                  <div className="w-full px-4 mb-6">
+                    <input 
+                      type="range" 
+                      min={0} 
+                      max={duration || 100} 
+                      value={currentTime} 
+                      onChange={handleSeek}
+                      className="w-full h-1 bg-[#E5E5E1] rounded-lg appearance-none cursor-pointer accent-accent-primary"
+                    />
+                    <div className="flex justify-between text-[10px] text-[#9A9A96] mt-1 font-mono">
+                      <span>{formatTime(currentTime)}</span>
+                      <span>{formatTime(duration)}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={handleSpeedChange}
+                      className="text-[10px] font-bold text-[#9A9A96] hover:text-text-primary px-2 py-1 bg-[#F9F9F7] rounded w-10 text-center transition-colors"
+                      title="Playback Speed"
+                    >
+                      {playbackRate}x
+                    </button>
+
+                    <button 
+                      onClick={handleRewind}
+                      className="text-[10px] font-bold text-[#9A9A96] hover:text-text-primary px-2 py-1 bg-[#F9F9F7] rounded w-10 text-center transition-colors flex items-center justify-center gap-0.5"
+                      title="Rewind 10 Seconds"
+                    >
+                      -10s
+                    </button>
+
                     <button 
                       onClick={togglePlay}
                       className="w-12 h-12 bg-text-primary text-white rounded-full flex items-center justify-center hover:opacity-90 transition-all shadow-lg"
                     >
                       {isPlaying ? <PauseIcon size={20} fill="currentColor" /> : <PlayIcon size={20} fill="currentColor" className="ml-1" />}
                     </button>
+                    
+                    <div className="w-[84px]" /> {/* Spacer to balance the two left buttons (10 + gap + 10) */}
                   </div>
 
                 </>
@@ -203,6 +275,12 @@ export default function GlobalAudio({ activeAudio, onClearAudio, allFiles, onSel
           ref={audioRef} 
           src={activeAudio.content} 
           onEnded={() => setIsPlaying(false)}
+          onTimeUpdate={() => {
+            if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
+          }}
+          onLoadedMetadata={() => {
+            if (audioRef.current) setDuration(audioRef.current.duration);
+          }}
           hidden 
         />
       )}

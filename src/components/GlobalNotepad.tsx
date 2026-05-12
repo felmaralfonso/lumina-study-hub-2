@@ -44,7 +44,7 @@ export default function GlobalNotepad() {
     <div className="fixed right-0 top-1/2 -translate-y-1/2 z-[100] flex" ref={containerRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-12 h-12 bg-text-primary text-white flex items-center justify-center shadow-2xl rounded-l-2xl hover:translate-x-[-4px] transition-transform"
+        className="w-12 h-12 bg-text-primary text-white flex items-center justify-center rounded-l-2xl hover:translate-x-[-4px] transition-transform"
       >
         {isOpen ? <ChevronRightIcon size={20} /> : <StickyNoteIcon size={20} />}
       </button>
@@ -55,7 +55,7 @@ export default function GlobalNotepad() {
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 340, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
-            className="h-[500px] bg-white border border-[#E5E5E1] shadow-2xl flex flex-col p-6 rounded-l-2xl overflow-hidden"
+            className="h-[500px] bg-white border border-[#E5E5E1] flex flex-col p-6 rounded-l-2xl overflow-hidden"
           >
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#9A9A96]">Daily Journal</h3>

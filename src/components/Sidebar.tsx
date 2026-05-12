@@ -1,7 +1,7 @@
 import { FolderIcon, GamepadIcon, LayoutDashboardIcon, PaletteIcon, Trash2Icon } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-export type TabType = 'library' | 'games' | 'themes';
+export type TabType = 'library' | 'games' | 'themes' | 'settings';
 
 interface SidebarProps {
   activeTab: TabType;
@@ -13,6 +13,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
     { id: 'library', label: 'My Documents', icon: FolderIcon },
     { id: 'games', label: 'Games', icon: GamepadIcon },
     { id: 'themes', label: 'Themes', icon: PaletteIcon },
+    { id: 'settings', label: 'Settings & Help', icon: LayoutDashboardIcon },
   ];
 
   const handleWipeAll = () => {
@@ -41,6 +42,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
                 return (
                   <li key={item.id}>
                     <button
+                      id={`tour-nav-${item.id}`}
                       onClick={() => setActiveTab(item.id as TabType)}
                       className={cn(
                         "w-full flex items-center gap-3 px-3 py-2 rounded text-sm transition-all duration-200",
@@ -62,6 +64,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
 
       <div className="mt-auto p-6 border-t border-[#E5E5E1] flex flex-col gap-6">
         <button
+          id="tour-wipe-data"
           onClick={handleWipeAll}
           className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-red-100 w-full"
         >
