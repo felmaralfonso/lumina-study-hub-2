@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { FileSystemState, Folder, HubFile } from '../types';
 import { INITIAL_FOLDERS } from '../constants';
 import localforage from 'localforage';
@@ -11,6 +11,7 @@ export function useFileSystem() {
   const [isSaving, setIsSaving] = useState(false);
   const [quotaInfo, setQuotaInfo] = useState<{ used: number; total: number } | null>(null);
   const [storageError, setStorageError] = useState<string | null>(null);
+  const isResetting = useRef(false);
 
   useEffect(() => {
     localforage.getItem<FileSystemState>(STORAGE_KEY).then((saved) => {
@@ -30,7 +31,7 @@ export function useFileSystem() {
   }, []);
 
   useEffect(() => {
-    if (isLoaded) {
+    if (isLoaded && !isResetting.current) {
       setIsSaving(true);
       setStorageError(null);
       localforage.setItem(STORAGE_KEY, state)
@@ -114,11 +115,36 @@ export function useFileSystem() {
     }));
   };
 
-  const resetFileSystem = () => {
-    setState({ files: [], folders: [] });
-    localforage.clear();
-    localStorage.clear();
-    window.location.reload();
+  const resetFileSystem = async () => {
+    try {
+      console.log("Starting system wipe...");
+      isResetting.current = true;
+      
+      // 1. Clear State
+      setState({ files: [], folders: [] });
+      
+      // 2. Clear localStorage (Sync & Fast)
+      console.log("Clearing localStorage...");
+      localStorage.clear();
+      
+      // 3. Clear localforage (Async)
+      console.log("Clearing localforage...");
+      try {
+        await localforage.clear();
+      } catch (lfErr) {
+        console.error("Localforage clear failed, but continuing:", lfErr);
+      }
+      
+      console.log("Wipe complete. Performing hard reload...");
+      // Use query param to bust any potential aggressive caching on GH Pages
+      const url = new URL(window.location.href);
+      url.searchParams.set('w', Date.now().toString());
+      window.location.href = url.toString();
+    } catch (error) {
+      console.error("Critical error during system wipe:", error);
+      localStorage.clear();
+      window.location.reload();
+    }
   };
 
   return {

@@ -6,9 +6,10 @@ export type TabType = 'library' | 'games' | 'themes' | 'settings';
 interface SidebarProps {
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
+  onWipeAll?: () => void;
 }
 
-export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
+export default function Sidebar({ activeTab, setActiveTab, onWipeAll }: SidebarProps) {
   const menuItems = [
     { id: 'library', label: 'My Documents', icon: FolderIcon },
     { id: 'games', label: 'Games', icon: GamepadIcon },
@@ -18,12 +19,8 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
 
   const handleWipeAll = () => {
     const confirmation = prompt('Type "DELETE" to confirm wiping ALL data (files, folders, and notes). This cannot be undone.');
-    if (confirmation === 'DELETE') {
-      const STORAGE_KEY = 'lumina_fs_v1';
-      localStorage.clear();
-      import('localforage').then(lf => lf.clear()).then(() => {
-        window.location.reload();
-      });
+    if (confirmation?.toUpperCase() === 'DELETE' && onWipeAll) {
+      onWipeAll();
     }
   };
 

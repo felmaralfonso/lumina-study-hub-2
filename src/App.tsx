@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Sidebar, { TabType } from './components/Sidebar';
 import FileExplorer from './components/FileExplorer';
-import GameGenerator from './components/GameGenerator';
+import Games from './components/Games';
 import ThemeManager from './components/ThemeManager';
 import SettingsManager from './components/SettingsManager';
 import FileViewer from './components/FileViewer';
@@ -20,6 +20,7 @@ import 'driver.js/dist/driver.css';
 
 function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('library');
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [viewingFile, setViewingFile] = useState<HubFile | null>(null);
   const [activeAudio, setActiveAudio] = useState<HubFile | null>(null);
   const [isBlackboardOpen, setIsBlackboardOpen] = useState(false);
@@ -116,6 +117,56 @@ function Dashboard() {
       window.removeEventListener('message', handleMessage);
     };
   }, [lockMode, isToolsHovered, lockKey, viewingFile, onboardingStep]);
+
+  // Browser History Management
+  useEffect(() => {
+    // Replace initial state if none exists
+    if (!window.history.state) {
+      window.history.replaceState({ type: 'home', tab: 'library', folderId: null }, '');
+    }
+
+    const handlePopState = (e: PopStateEvent) => {
+      const state = e.state;
+      if (!state) return;
+
+      // Update state based on history
+      if (state.tab) setActiveTab(state.tab);
+      if (state.folderId !== undefined) setCurrentFolderId(state.folderId);
+      
+      // If we are currently viewing a file but the new state is NOT a file, close it
+      if (viewingFile && state.type !== 'file') {
+        setViewingFile(null);
+      }
+      
+      // Note: We don't restore 'viewingFile' from history state yet because it's a complex object.
+      // But we can at least close it when going back.
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [viewingFile]);
+
+  // Sync state TO history
+  useEffect(() => {
+    const currentState = window.history.state;
+    
+    const targetState = { 
+      type: viewingFile ? 'file' : (currentFolderId ? 'folder' : (activeTab === 'library' ? 'home' : 'tab')),
+      tab: activeTab,
+      folderId: currentFolderId,
+      fileId: viewingFile?.id
+    };
+
+    // Check if we actually need to push a new state
+    const isDifferent = currentState?.type !== targetState.type || 
+                        currentState?.tab !== targetState.tab || 
+                        currentState?.folderId !== targetState.folderId ||
+                        currentState?.fileId !== targetState.fileId;
+
+    if (isDifferent) {
+      window.history.pushState(targetState, '');
+    }
+  }, [viewingFile, activeTab, currentFolderId]);
 
 
   // Stateful Onboarding Flow Progressions
@@ -342,6 +393,7 @@ function Dashboard() {
           setActiveTab(tab);
           setViewingFile(null); // Clear open file when switching tabs
         }}
+        onWipeAll={resetFileSystem}
       />
 
       <main
@@ -368,9 +420,13 @@ function Dashboard() {
             deleteFolder={deleteFolder}
             updateFolder={updateFolder}
             resetFileSystem={resetFileSystem}
+            currentFolderId={currentFolderId}
+            setCurrentFolderId={setCurrentFolderId}
           />
         )}
-        {activeTab === 'games' && <GameGenerator />}
+        <div className={activeTab === 'games' ? 'contents' : 'hidden'}>
+          <Games />
+        </div>
         {activeTab === 'themes' && <ThemeManager />}
         {activeTab === 'settings' && (
           <SettingsManager
@@ -398,7 +454,13 @@ function Dashboard() {
             allFiles={state.files}
             allFolders={state.folders}
             onFileSelect={setViewingFile}
-            onClose={() => setViewingFile(null)}
+            onClose={() => {
+              if (window.history.state?.type === 'file') {
+                window.history.back();
+              } else {
+                setViewingFile(null);
+              }
+            }}
             onSaveFile={(id, updates) => {
               updateFile(id, updates);
             }}

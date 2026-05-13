@@ -13,6 +13,8 @@ interface FileExplorerProps {
   deleteFolder: (id: string) => void;
   updateFolder: (id: string, updates: Partial<Folder>) => void;
   resetFileSystem: () => void;
+  currentFolderId: string | null;
+  setCurrentFolderId: (id: string | null) => void;
 }
 
 export default function FileExplorer({ 
@@ -23,9 +25,11 @@ export default function FileExplorer({
   deleteFile,
   deleteFolder,
   updateFolder,
-  resetFileSystem
+  resetFileSystem,
+  currentFolderId,
+  setCurrentFolderId
 }: FileExplorerProps) {
-  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
+
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
